@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0CFB640C-E0B4-4C11-A069-5790618D2BF9}</ProjectGuid>
+    <ProjectGuid>{8939DB8B-2C06-48B7-B0F5-2B45E56F9769}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleApplication1</RootNamespace>
     <ProjectName>ctrc</ProjectName>
@@ -73,22 +73,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\vc14\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\vc14\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\vc14\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\vc14\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\obj\vc14\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -163,7 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ctrc_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
