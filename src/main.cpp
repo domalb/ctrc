@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+// http://stackoverflow.com/questions/2048509/how-to-echo-with-different-colors-in-the-windows-command-line/38617204#38617204
+
 typedef const wchar_t* sz;
 
 //----------------------------------------------------------------------------------------------------------------------
