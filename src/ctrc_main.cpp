@@ -11,6 +11,9 @@
 #define CTRC_ARG_PAUSE L"-p"
 #define CTRC_ARG_SCHEME L"-s"
 
+bool verbose = false;
+#define CTRC_LOG(x_msg) if(verbose) { std::wcout << L"CTRC: " << x_msg << std::endl; }
+
 namespace ctrc
 {
 	typedef const wchar_t* sz;
@@ -87,14 +90,13 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	}
 
 	// Test for verbose argument
-	bool verbose = false;
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
 		if((arg != NULL) && (_wcsicmp(arg, CTRC_ARG_VERBOSE) == 0))
 		{
-			std::wcout << L"verbose mode detected" << std::endl;
 			verbose = true;
+			CTRC_LOG(L"verbose mode detected");
 		}
 	}
 // 	for(int i = 1; i < argc; ++i)
@@ -113,10 +115,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	schemes.push_back(ctrc::scheme(ctrc::COLOR_RED, L"error:"));
 	schemes.push_back(ctrc::scheme(ctrc::COLOR_YELLOW, L"warning:"));
 
-	if(verbose)
-	{
-		std::wcout << L"ctrc start" << std::endl;
-	}
+	CTRC_LOG(L"start");
 
 	std::wstring line;
 	while(std::wcin)
@@ -127,7 +126,6 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		{
 			const ctrc::scheme& s = schemes[i];
 			ctrc::sz schemeStart = s.m_start.c_str();
-			assert(schemeStart != NULL);
 			std::wstring::size_type startFound = line.find(schemeStart);
 			if(startFound != std::wstring::npos)
 			{
@@ -149,14 +147,14 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 				{
 					line.insert(startFound, ctrc::sz(s.m_seq));
 				}
+				break;
 			}
-			break;
 		}
 		std::wcout << line.c_str() << std::endl;
 
-		std::wcout << L"ctrc new line" << std::endl;
-	};
-	std::wcout << L"ctrc finished" << std::endl;
+		CTRC_LOG(L"new line");
+	}
+	CTRC_LOG(L"finished");
 
 	 return 0;
 }
