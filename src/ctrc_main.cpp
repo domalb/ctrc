@@ -35,22 +35,44 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	enum colorKey
 	{
-		COLOR_RED = 0,
-		COLOR_GREEN,
-		COLOR_YELLOW,
-		COLOR_CYAN,
-// 		COLOR_GRAY,
+		COLOR_BLACK = 0,
+		COLOR_DARK_RED,
+		COLOR_DARK_GREEN,
+		COLOR_DARK_YELLOW,
+		COLOR_DARK_BLUE,
+		COLOR_DARK_MAGENTA,
+		COLOR_DARK_CYAN,
+		COLOR_DARK_GREY,
+		COLOR_LIGHT_GREY,
+		COLOR_LIGHT_RED,
+		COLOR_LIGHT_GREEN,
+		COLOR_LIGHT_YELLOW,
+		COLOR_LIGHT_BLUE,
+		COLOR_LIGHT_MAGENTA,
+		COLOR_LIGHT_CYAN,
+		COLOR_WHITE,
 
 		COLOR_MAX
 	};
 
 	static const sz colorName [] =
 	{
+		L"black",
+		L"d_red",
+		L"d_green",
+		L"d_yellow",
+		L"d_blue",
+		L"d_magenta",
+		L"d_cyan",
+		L"d_gray",
+		L"gray",
 		L"red",
 		L"green",
 		L"yellow",
+		L"blue",
+		L"magenta",
 		L"cyan",
-// 		L"gray",
+		L"white",
 	};
 
 	static const wchar_t colorVal [] =
@@ -63,14 +85,38 @@ namespace ctrc
 
 	static const WORD colorConsoleAttrib [] =
 	{
+		// black
+		0,
+		// d_red
+		FOREGROUND_RED,
+		// d_green
+		FOREGROUND_GREEN,
+		// d_yellow
+		FOREGROUND_RED | FOREGROUND_GREEN,
+		// d_blue
+		FOREGROUND_BLUE,
+		// d_magenta
+		FOREGROUND_RED | FOREGROUND_BLUE,
+		// d_cyan
+		FOREGROUND_BLUE | FOREGROUND_GREEN,
+		// d_gray
+		FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,
+		// l_gray
+		FOREGROUND_INTENSITY,
 		// red
 		FOREGROUND_INTENSITY | FOREGROUND_RED,
 		// green
 		FOREGROUND_INTENSITY | FOREGROUND_GREEN,
 		// yellow
 		FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN,
+		// blue
+		FOREGROUND_INTENSITY | FOREGROUND_BLUE,
+		// magenta
+		FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_BLUE,
 		// cyan
-		FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE,
+		FOREGROUND_INTENSITY | FOREGROUND_BLUE | FOREGROUND_GREEN,
+		// white
+		FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,
 	};
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -209,9 +255,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	WORD defaultAttribs = info.wAttributes;
 
 	// Detect schemes
-	std::vector<ctrc::tag> schemes;
-// 	schemes.push_back(ctrc::scheme(ctrc::COLOR_RED, L"error:"));
-// 	schemes.push_back(ctrc::scheme(ctrc::COLOR_YELLOW, L"warning:"));
+	std::vector<ctrc::tag> tags;
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
@@ -236,8 +280,8 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 					ctrc::sz start = argVal + colorArgValLength + 1;
 					if(start[0] != 0)
 					{
-						schemes.push_back(ctrc::tag(ctrc::colorKey(j), start));
-						CTRC_LOG(L"scheme : " << colorArgVal << L" : " << start);
+						tags.push_back(ctrc::tag(ctrc::colorKey(j), start));
+						CTRC_LOG(L"tag : " << colorArgVal << L" : " << start);
 					}
 				}
 			}
@@ -251,9 +295,9 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	{
 		getline(std::wcin, line);
 
-		for(size_t i = 0; i < schemes.size(); ++i)
+		for(size_t i = 0; i < tags.size(); ++i)
 		{
-			const ctrc::tag& s = schemes[i];
+			const ctrc::tag& s = tags[i];
 			std::wstring::size_type startFound = line.find(s.m_start.c_str());
 			if(startFound != std::wstring::npos)
 			{
