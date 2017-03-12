@@ -13,13 +13,16 @@
 
 #define CTRC_ARG_VERBOSE L"-v"
 #define CTRC_ARG_PAUSE L"-p"
-#define CTRC_ARG_TAG L"-t="
+#define CTRC_ARG_DEFAULT L"-d="
+static const size_t CTRC_ARG_DEFAULT_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_DEFAULT);
+#define CTRC_ARG_TAG L"-c="
 static const size_t CTRC_ARG_TAG_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_TAG);
 #define CTRC_ARG_SEPARATOR L"-s="
 static const size_t CTRC_ARG_SEPARATOR_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_SEPARATOR);
 
 bool verbose = false;
-#define CTRC_LOG(x_msg) if(verbose) { std::wcout << L"CTRC: " << x_msg << std::endl; }
+#define CTRC_LOG_INFO(x_msg) if(verbose) { std::wcout << L"CTRC: " << x_msg << std::endl; }
+#define CTRC_LOG_ERROR(x_msg) if(verbose) { std::wcerr << L"CTRC: " << x_msg << std::endl; }
 
 namespace ctrc
 {
@@ -124,7 +127,7 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	struct tag
 	{
-		tag(colorKey color, sz start): m_color(color), m_start(start)
+		tag(colorKey color, sz start): m_colorKey(color), m_start(start)
 		{
 			assert(color < COLOR_MAX);
 			m_seq[0] = esc;
@@ -132,9 +135,9 @@ namespace ctrc
 			m_seq[2] = 0;
 			m_attribs = colorConsoleAttrib[color];
 		}
-		tag(colorKey color, sz start, sz end): m_color(color), m_start(start), m_end(end) {}
+		tag(colorKey color, sz start, sz end): m_colorKey(color), m_start(start), m_end(end) {}
 
-		colorKey m_color;
+		colorKey m_colorKey;
 		std::wstring m_start;
 		std::wstring m_end;
 		wchar_t m_seq [3];
@@ -161,12 +164,12 @@ namespace ctrc
 			size_t argLength = wcslen(val);
 			if(argLength < 2)
 			{
-				CTRC_LOG(L"invalid argument length");
+				CTRC_LOG_INFO(L"invalid argument length");
 				return -1;
 			}
 			else if(val[argLength - 1] != L'"')
 			{
-				CTRC_LOG(L"quote detection error for argument " << arg);
+				CTRC_LOG_INFO(L"quote detection error for argument " << arg);
 				return -1;
 			}
 			else
@@ -213,7 +216,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		if((arg != NULL) && (_wcsicmp(arg, CTRC_ARG_VERBOSE) == 0))
 		{
 			verbose = true;
-			CTRC_LOG(L"verbose mode detected");
+			CTRC_LOG_INFO(L"verbose mode detected");
 		}
 	}
 
@@ -226,22 +229,43 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			wchar_t newSeparator = arg[CTRC_ARG_SEPARATOR_LENGTH];
 			if(newSeparator == 0)
 			{
-				CTRC_LOG(L"invalid separator : " << arg);
+				CTRC_LOG_INFO(L"invalid separator : " << arg);
 				return -1;
 			}
 			else
 			{
-				CTRC_LOG(L"separtor : " << newSeparator);
+				CTRC_LOG_INFO(L"separtor : " << newSeparator);
 				ctrc::tagSeparator = newSeparator;
 
 			}
 		}
 	}
 
+	// Test for default color
+	static const WORD invalidConsoleAttrib = WORD(-1);
+	WORD defaultConsoleAttrib = invalidConsoleAttrib;
+	for(int i = 1; i < argc; ++i)
+	{
+		const wchar_t* arg = argv[i];
+		if((arg != NULL) && (_wcsnicmp(arg, CTRC_ARG_DEFAULT, CTRC_ARG_DEFAULT_LENGTH) == 0))
+		{
+			ctrc::sz argVal = arg + CTRC_ARG_SEPARATOR_LENGTH;
+			for(size_t j = 0; j < ctrc::COLOR_MAX; ++j)
+			{
+				if(_wcsicmp(argVal, ctrc::colorName[j]) == 0)
+				{
+					defaultConsoleAttrib = ctrc::colorConsoleAttrib[j];
+					break;
+				}
+			}
+		}
+	}
+
+	// Get initial console text attributes
 	HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	if(stdOut == INVALID_HANDLE_VALUE)
 	{
-		CTRC_LOG(L"could not get output handle");
+		CTRC_LOG_INFO(L"could not get output handle");
 		return  -1;
 	}
 	CONSOLE_SCREEN_BUFFER_INFO info;
@@ -249,10 +273,10 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	BOOL getInfo = GetConsoleScreenBufferInfo(stdOut, &info);
 	if(getInfo == FALSE)
 	{
-		CTRC_LOG(L"could not get consule screen buffer info");
+		CTRC_LOG_INFO(L"could not get consule screen buffer info");
 		return  -1;
 	}
-	WORD defaultAttribs = info.wAttributes;
+	WORD initConsoleAttribs = info.wAttributes;
 
 	// Detect schemes
 	std::vector<ctrc::tag> tags;
@@ -281,47 +305,46 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 					if(start[0] != 0)
 					{
 						tags.push_back(ctrc::tag(ctrc::colorKey(j), start));
-						CTRC_LOG(L"tag : " << colorArgVal << L" : " << start);
+						CTRC_LOG_INFO(L"tag : " << colorArgVal << L" : " << start);
 					}
 				}
 			}
 		}
 	}
 
-	CTRC_LOG(L"start");
+	CTRC_LOG_INFO(L"start");
 
 	std::wstring line;
 	while(std::wcin)
 	{
 		getline(std::wcin, line);
+		CTRC_LOG_INFO(L"new line");
 
+		WORD consoleAttrib = defaultConsoleAttrib;
+		std::wstring::size_type startFound = std::wstring::npos;
 		for(size_t i = 0; i < tags.size(); ++i)
 		{
 			const ctrc::tag& s = tags[i];
-			std::wstring::size_type startFound = line.find(s.m_start.c_str());
+			startFound = line.find(s.m_start.c_str());
 			if(startFound != std::wstring::npos)
 			{
-// 				std::wstring::size_type endFound = std::wstring::npos;
-// 				if(s.m_end.empty() == false)
-// 				{
-// 					endFound = line.find(s.m_end.c_str());
-// 				}
-// 
-// 				if(startFound != 0)
-// 				{
-// 					printf("%.")
-// 				}
-				SetConsoleTextAttribute(stdOut, s.m_attribs);
-				std::wcout << line.c_str() << std::endl;
-				SetConsoleTextAttribute(stdOut, defaultAttribs);
-				
+				CTRC_LOG_INFO(L"tag found : " << ctrc::colorName[s.m_colorKey]);
+				consoleAttrib = s.m_attribs;
 				break;
 			}
 		}
-
-		CTRC_LOG(L"new line");
+		if(consoleAttrib != invalidConsoleAttrib)
+		{
+			SetConsoleTextAttribute(stdOut, consoleAttrib);
+			std::wcout << line.c_str() << std::endl;
+			SetConsoleTextAttribute(stdOut, initConsoleAttribs);
+		}
+		else
+		{
+			std::wcout << line.c_str() << std::endl;
+		}
 	}
-	CTRC_LOG(L"finished");
+	CTRC_LOG_INFO(L"finished");
 
 	 return 0;
 }
