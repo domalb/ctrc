@@ -9,8 +9,10 @@ Typically CTRC should be piped with another program or command for which we need
 ## Syntax
 Basic command line
 `crtc -c=COLOR~PATTERN`
-Where COLOR is one of the availale color names and PATTERN is the text to detect, e,g. :
+Where COLOR is one of the available color names and PATTERN is the text to detect, e,g. :
 `ctrc -c=red~error -c=yellow~warning`
+Available colors (d_ stands for dark) :
+black, d_red, d_green, d_yellow, d_blue, d_magenta", d_cyan, d_gray, gray, red, green, yellow, blue, magenta, cyan, white.
 
 ### Pause (-p)
 
@@ -29,7 +31,7 @@ Errors are outputted to stand error (std::err).
 
 ### Separtor (-s)
 
-
 ## Future enhancements
 - Enable only partial line coloring
 - Enable use of regular expressions
+- Enable background colors
