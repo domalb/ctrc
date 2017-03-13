@@ -12,7 +12,7 @@ Basic command line
 Where COLOR is one of the available color names and PATTERN is the text to detect, e,g. :
 `ctrc -c=red~error -c=yellow~warning`
 Available colors (d_ stands for dark) :
-black, d_red, d_green, d_yellow, d_blue, d_magenta", d_cyan, d_gray, gray, red, green, yellow, blue, magenta, cyan, white.
+black, d_red, d_green, d_yellow, d_blue, d_magenta, d_cyan, d_gray, gray, red, green, yellow, blue, magenta, cyan, white.
 
 ### Pause (-p)
 
