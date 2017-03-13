@@ -198,15 +198,15 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	struct tag
 	{
-		tag(colorKey color, sz start): m_colorKey(color), m_start(start)
+		tag(colorKey key, sz start): m_colorKey(key), m_start(start)
 		{
-			assert(color < COLOR_MAX);
+			assert(key < COLOR_MAX);
 			m_seq[0] = esc;
-			m_seq[1] = colorVal[color];
+			m_seq[1] = getColorVal(key);
 			m_seq[2] = 0;
-			m_attribs = getColorConsoleAttrib(color);
+			m_attribs = getColorConsoleAttrib(key);
 		}
-		tag(colorKey color, sz start, sz end): m_colorKey(color), m_start(start), m_end(end) {}
+// 		tag(colorKey key, sz start, sz end): m_colorKey(key), m_start(start), m_end(end) {}
 
 		colorKey m_colorKey;
 		std::wstring m_start;
@@ -262,7 +262,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	assert(CTRC_ARRAY_LENGTH(ctrc::colorName) == CTRC_ARRAY_LENGTH(colorArgValLengths));
 	for(size_t i = 0; i < ctrc::COLOR_MAX; ++i)
 	{
-		colorArgValLengths[i] = wcslen(ctrc::colorName[i]);
+		colorArgValLengths[i] = wcslen(ctrc::getColorName(i));
 	}
 
 	// Test for pause argument
@@ -288,6 +288,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		{
 			verbose = true;
 			CTRC_LOG_INFO(L"verbose mode detected");
+			break;
 		}
 	}
 
@@ -307,6 +308,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			{
 				CTRC_LOG_INFO(L"separtor : " << newSeparator);
 				ctrc::tagSeparator = newSeparator;
+				break;
 
 			}
 		}
@@ -351,15 +353,15 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			}
 			for(size_t j = 0; j < ctrc::COLOR_MAX; ++j)
 			{
-				ctrc::sz colorArgVal = ctrc::colorName[j];
+				ctrc::sz argValColorName = ctrc::getColorName(j);
 				size_t colorArgValLength = colorArgValLengths[j];
-				if((_wcsnicmp(argVal, colorArgVal, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
+				if((_wcsnicmp(argVal, argValColorName, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
 				{
 					ctrc::sz start = argVal + colorArgValLength + 1;
 					if(start[0] != 0)
 					{
 						tags.push_back(ctrc::tag(ctrc::colorKey(j), start));
-						CTRC_LOG_INFO(L"tag : " << colorArgVal << L" : " << start);
+						CTRC_LOG_INFO(L"tag : " << argValColorName << L" : " << start);
 					}
 				}
 			}
@@ -392,11 +394,10 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		CTRC_LOG_INFO(L"new line");
 
 		WORD consoleAttrib = defaultConsoleAttrib;
-		std::wstring::size_type startFound = std::wstring::npos;
 		for(size_t i = 0; i < tags.size(); ++i)
 		{
 			const ctrc::tag& s = tags[i];
-			startFound = line.find(s.m_start.c_str());
+			std::wstring::size_type startFound = line.find(s.m_start.c_str());
 			if(startFound != std::wstring::npos)
 			{
 				CTRC_LOG_INFO(L"tag found : " << ctrc::colorName[s.m_colorKey]);
