@@ -31,7 +31,8 @@ namespace ctrc
 	static const char def = 0;
 	static const wchar_t esc_def[] = { esc, def, 0 };
 
-	wchar_t tagSeparator = L'~';
+	static const wchar_t tagDefaultSeparator = L'~';
+	wchar_t tagSeparator = tagDefaultSeparator;
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
@@ -58,6 +59,9 @@ namespace ctrc
 		COLOR_MAX
 	};
 
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
 	static const sz colorName [] =
 	{
 		L"black",
@@ -78,14 +82,70 @@ namespace ctrc
 		L"white",
 	};
 
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
+	sz getColorName(size_t key)
+	{
+		assert(key < COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(colorName) == COLOR_MAX);
+
+		return colorName[key];
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
 	static const wchar_t colorVal [] =
 	{
+		// black
+		30,
+		// d_red
 		31,
+		// d_green
 		32,
+		// d_yellow
 		33,
+		// d_blue
+		34,
+		// d_magenta
+		35,
+		// d_cyan
 		36,
+		// d_gray
+		37,
+		// l_gray
+		90,
+		// red
+		91,
+		// green
+		92,
+		// yellow
+		93,
+		// blue
+		94,
+		// magenta
+		95,
+		// cyan
+		96,
+		// white
+		97,
 	};
 
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
+	wchar_t getColorVal(size_t key)
+	{
+		assert(key < COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(colorVal) == COLOR_MAX);
+
+		return colorVal[key];
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
 	static const WORD colorConsoleAttrib [] =
 	{
 		// black
@@ -125,6 +185,17 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
+	WORD getColorConsoleAttrib(size_t key)
+	{
+		assert(key < COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(colorConsoleAttrib) == COLOR_MAX);
+
+		return colorConsoleAttrib[key];
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
 	struct tag
 	{
 		tag(colorKey color, sz start): m_colorKey(color), m_start(start)
@@ -133,7 +204,7 @@ namespace ctrc
 			m_seq[0] = esc;
 			m_seq[1] = colorVal[color];
 			m_seq[2] = 0;
-			m_attribs = colorConsoleAttrib[color];
+			m_attribs = getColorConsoleAttrib(color);
 		}
 		tag(colorKey color, sz start, sz end): m_colorKey(color), m_start(start), m_end(end) {}
 
@@ -164,12 +235,12 @@ namespace ctrc
 			size_t argLength = wcslen(val);
 			if(argLength < 2)
 			{
-				CTRC_LOG_INFO(L"invalid argument length");
+				CTRC_LOG_ERROR(L"invalid argument length");
 				return -1;
 			}
 			else if(val[argLength - 1] != L'"')
 			{
-				CTRC_LOG_INFO(L"quote detection error for argument " << arg);
+				CTRC_LOG_ERROR(L"quote detection error for argument " << arg);
 				return -1;
 			}
 			else
@@ -229,7 +300,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			wchar_t newSeparator = arg[CTRC_ARG_SEPARATOR_LENGTH];
 			if(newSeparator == 0)
 			{
-				CTRC_LOG_INFO(L"invalid separator : " << arg);
+				CTRC_LOG_ERROR(L"invalid separator : " << arg);
 				return -1;
 			}
 			else
@@ -254,31 +325,14 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			{
 				if(_wcsicmp(argVal, ctrc::colorName[j]) == 0)
 				{
-					defaultConsoleAttrib = ctrc::colorConsoleAttrib[j];
+					defaultConsoleAttrib = ctrc::getColorConsoleAttrib(j);
 					break;
 				}
 			}
 		}
 	}
 
-	// Get initial console text attributes
-	HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);
-	if(stdOut == INVALID_HANDLE_VALUE)
-	{
-		CTRC_LOG_INFO(L"could not get output handle");
-		return  -1;
-	}
-	CONSOLE_SCREEN_BUFFER_INFO info;
-	memset(&info, 0, sizeof(info));
-	BOOL getInfo = GetConsoleScreenBufferInfo(stdOut, &info);
-	if(getInfo == FALSE)
-	{
-		CTRC_LOG_INFO(L"could not get consule screen buffer info");
-		return  -1;
-	}
-	WORD initConsoleAttribs = info.wAttributes;
-
-	// Detect schemes
+	// Detect tags
 	std::vector<ctrc::tag> tags;
 	for(int i = 1; i < argc; ++i)
 	{
@@ -312,6 +366,23 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		}
 	}
 
+	// Get initial console text attributes
+	HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);
+	if(stdOut == INVALID_HANDLE_VALUE)
+	{
+		CTRC_LOG_ERROR(L"could not get output handle");
+		return  -1;
+	}
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	memset(&info, 0, sizeof(info));
+	BOOL getInfo = GetConsoleScreenBufferInfo(stdOut, &info);
+	if(getInfo == FALSE)
+	{
+		CTRC_LOG_ERROR(L"could not get consule screen buffer info");
+		return  -1;
+	}
+	WORD initConsoleAttribs = info.wAttributes;
+
 	CTRC_LOG_INFO(L"start");
 
 	std::wstring line;
@@ -344,7 +415,8 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			std::wcout << line.c_str() << std::endl;
 		}
 	}
+
 	CTRC_LOG_INFO(L"finished");
 
-	 return 0;
+	return 0;
 }
