@@ -42,3 +42,7 @@ Errors are outputted to stand error (std::err).
 - Enable only partial line coloring
 - Enable use of regular expressions
 - Enable background colors
+
+## Related projects
+
+CRTC is somewhat similar to [cmdcolor](https://github.com/jeremejevs/cmdcolor). Both use piping, but they don't detect input the same way.
