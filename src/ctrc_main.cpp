@@ -1,4 +1,21 @@
-#include <windows.h>
+#if defined TARGET_OS_MAC
+#   define CCTX_OS_MACOS
+#elif defined _WIN32
+#   define CCTX_OS_WINDOWS
+#endif
+
+#if defined CCTX_OS_WINDOWS
+#   define CCTX_MAX_PATH MAX_PATH
+#else // CCTX_OS_XXX
+#   define CCTX_MAX_PATH PATH_MAX
+#endif // CCTX_OS_XXX
+
+
+#if defined CCTX_OS_MACOS
+#elif defined CCTX_OS_WINDOWS
+#   include <windows.h>
+#endif // CCTX_OS_XXX
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,6 +51,8 @@ namespace ctrc
 	static const wchar_t tagDefaultSeparator = L'~';
 	wchar_t tagSeparator = tagDefaultSeparator;
 
+#if defined CCTX_OS_WINDOWS
+    
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
@@ -214,6 +233,10 @@ namespace ctrc
 		wchar_t m_seq [3];
 		WORD m_attribs;
 	};
+    
+#elif defined CCTX_OS_MACOS
+    
+#endif // CCTX_OS_XXX
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
@@ -228,7 +251,7 @@ namespace ctrc
 			++val;
 		}
 
-		wcscpy_s(buffer, MAX_PATH, val);
+		wcscpy(buffer, CCTX_MAX_PATH, val);
 
 		if(quotes)
 		{
