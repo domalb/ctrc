@@ -88,7 +88,7 @@
 #	else // TARGET_RT_64_BIT
 #		define CCTX_PTR_SIZE 4
 #	endif // TARGET_RT_64_BIT
-#	if TARGET_PLATFORM_IPHONE
+#	if TARGET_OS_IPHONE
 #		define CCTX_IOS
 #		define CCTX_IOS_HACK
 #		if TARGET_IPHONE_SIMULATOR
@@ -116,7 +116,7 @@
 #				error unsupported IOS device platform
 #			endif // __ARM_ARCH_XXX
 #		endif // TARGET_IPHONE_SIMULATOR
-#	elif TARGET_PLATFORM_MAC
+#	elif TARGET_OS_MAC
 #		define CCTX_PLATFORM_MAC
 #		if TARGET_CPU_X86
 #			define CCTX_PLATFORM_MAC_X86
@@ -146,10 +146,11 @@
 #   define CCTX_MAX_PATH PATH_MAX
 #endif // CCTX_PLATFORM_XXX
 
-
 #if defined CCTX_PLATFORM_MACOS
 #elif defined CCTX_PLATFORM_WINDOWS
 #   include <windows.h>
+#   define wcscasecmp _wcsicmp
+#   define wcsncasecmp _wcsicmp
 #endif // CCTX_PLATFORM_XXX
 
 #include <iostream>
@@ -187,8 +188,6 @@ namespace ctrc
 	static const wchar_t tagDefaultSeparator = L'~';
 	wchar_t tagSeparator = tagDefaultSeparator;
 
-#if defined CCTX_PLATFORM_WINDOWS
-    
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
@@ -248,6 +247,8 @@ namespace ctrc
 		return colorName[key];
 	}
 
+#if defined CCTX_PLATFORM_WINDOWS
+    
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
@@ -432,7 +433,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (_wcsicmp(arg, CTRC_ARG_PAUSE) == 0))
+		if((arg != NULL) && (wcscasecmp(arg, CTRC_ARG_PAUSE) == 0))
 		{
 			static int j = 0;
 			while(true)
@@ -447,7 +448,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (_wcsicmp(arg, CTRC_ARG_VERBOSE) == 0))
+		if((arg != NULL) && (wcscasecmp(arg, CTRC_ARG_VERBOSE) == 0))
 		{
 			verbose = true;
 			CTRC_LOG_INFO(L"verbose mode detected");
@@ -458,8 +459,8 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	// Test for separator
 	for(int i = 1; i < argc; ++i)
 	{
-		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (_wcsnicmp(arg, CTRC_ARG_SEPARATOR, CTRC_ARG_SEPARATOR_LENGTH) == 0))
+        const wchar_t* arg = argv[i];
+		if((arg != NULL) && (wcsncasecmp(arg, CTRC_ARG_SEPARATOR, CTRC_ARG_SEPARATOR_LENGTH) == 0))
 		{
 			wchar_t newSeparator = arg[CTRC_ARG_SEPARATOR_LENGTH];
 			if(newSeparator == 0)
@@ -483,12 +484,12 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (_wcsnicmp(arg, CTRC_ARG_DEFAULT, CTRC_ARG_DEFAULT_LENGTH) == 0))
+		if((arg != NULL) && (wcsncasecmp(arg, CTRC_ARG_DEFAULT, CTRC_ARG_DEFAULT_LENGTH) == 0))
 		{
 			ctrc::sz argVal = arg + CTRC_ARG_SEPARATOR_LENGTH;
 			for(size_t j = 0; j < ctrc::COLOR_MAX; ++j)
 			{
-				if(_wcsicmp(argVal, ctrc::colorName[j]) == 0)
+				if(wcscasecmp(argVal, ctrc::colorName[j]) == 0)
 				{
 					defaultConsoleAttrib = ctrc::getColorConsoleAttrib(j);
 					break;
