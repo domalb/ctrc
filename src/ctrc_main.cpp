@@ -151,6 +151,8 @@
 #   include <windows.h>
 #   define wcscasecmp _wcsicmp
 #   define wcsncasecmp _wcsnicmp
+#   define strcasecmp _stricmp
+#   define strncasecmp _strnicmp
 #endif // CCTX_PLATFORM_XXX
 
 #include <iostream>
