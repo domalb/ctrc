@@ -146,7 +146,7 @@
 #   define CCTX_MAX_PATH PATH_MAX
 #endif // CCTX_PLATFORM_XXX
 
-#if defined CCTX_PLATFORM_MACOS
+#if defined CCTX_PLATFORM_MAC
 #elif defined CCTX_PLATFORM_WINDOWS
 #   include <windows.h>
 #   define wcscasecmp _wcsicmp
@@ -165,28 +165,28 @@
 #define CTRC_ARRAY_LENGTH(val) (sizeof(val) / sizeof(val[0]))
 #define CTRC_STRING_LENGTH(val) (CTRC_ARRAY_LENGTH(val) - 1)
 
-#define CTRC_ARG_VERBOSE L"-v"
-#define CTRC_ARG_PAUSE L"-p"
-#define CTRC_ARG_DEFAULT L"-d="
+#define CTRC_ARG_VERBOSE "-v"
+#define CTRC_ARG_PAUSE "-p"
+#define CTRC_ARG_DEFAULT "-d="
 static const size_t CTRC_ARG_DEFAULT_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_DEFAULT);
-#define CTRC_ARG_TAG L"-c="
+#define CTRC_ARG_TAG "-c="
 static const size_t CTRC_ARG_TAG_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_TAG);
-#define CTRC_ARG_SEPARATOR L"-s="
+#define CTRC_ARG_SEPARATOR "-s="
 static const size_t CTRC_ARG_SEPARATOR_LENGTH = CTRC_STRING_LENGTH(CTRC_ARG_SEPARATOR);
 
 bool verbose = false;
-#define CTRC_LOG_INFO(x_msg) if(verbose) { std::wcout << L"CTRC: " << x_msg << std::endl; }
-#define CTRC_LOG_ERROR(x_msg) if(verbose) { std::wcerr << L"CTRC: " << x_msg << std::endl; }
+#define CTRC_LOG_INFO(x_msg) if(verbose) { std::cout << "CTRC: " << x_msg << std::endl; }
+#define CTRC_LOG_ERROR(x_msg) if(verbose) { std::cerr << "CTRC: " << x_msg << std::endl; }
 
 namespace ctrc
 {
-	typedef const wchar_t* sz;
+	typedef const char* sz;
 	static const char esc = 0x1B;
 	static const char def = 0;
-	static const wchar_t esc_def[] = { esc, def, 0 };
+	static const char esc_def[] = { esc, def, 0 };
 
-	static const wchar_t tagDefaultSeparator = L'~';
-	wchar_t tagSeparator = tagDefaultSeparator;
+	static const char tagDefaultSeparator = '~';
+	char tagSeparator = tagDefaultSeparator;
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
@@ -220,22 +220,22 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	static const sz colorName [] =
 	{
-		L"black",
-		L"d_red",
-		L"d_green",
-		L"d_yellow",
-		L"d_blue",
-		L"d_magenta",
-		L"d_cyan",
-		L"d_gray",
-		L"gray",
-		L"red",
-		L"green",
-		L"yellow",
-		L"blue",
-		L"magenta",
-		L"cyan",
-		L"white",
+		"black",
+		"d_red",
+		"d_green",
+		"d_yellow",
+		"d_blue",
+		"d_magenta",
+		"d_cyan",
+		"d_gray",
+		"gray",
+		"red",
+		"green",
+		"yellow",
+		"blue",
+		"magenta",
+		"cyan",
+		"white",
 	};
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	static const wchar_t winColorVal [] =
+	static const char winColorVal [] =
 	{
 		// black
 		30,
@@ -293,7 +293,7 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	wchar_t getWinColorVal(size_t key)
+	char getWinColorVal(size_t key)
 	{
 		assert(key < COLOR_MAX);
 		assert(CTRC_ARRAY_LENGTH(winColorVal) == COLOR_MAX);
@@ -351,9 +351,9 @@ namespace ctrc
 		return winColorConsoleAttrib[key];
 	}
 
-#elif defined CCTX_PLATFORM_MACOS
+#elif defined CCTX_PLATFORM_MAC
 
-	static const sz ansiResetColorEsSeq = "\033[0m";
+    static const sz ansiResetColorEsSeq = "\033[0m";
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
@@ -399,23 +399,19 @@ namespace ctrc
 		tag(colorKey key, sz start) : m_colorKey(key), m_start(start)
 		{
 			assert(key < COLOR_MAX);
-			m_seq[0] = esc;
-			m_seq[1] = getWinColorVal(key);
-			m_seq[2] = 0;
 		}
 
 		colorKey m_colorKey;
-		std::wstring m_start;
-		std::wstring m_end;
-		wchar_t m_seq[3];
+		std::string m_start;
+		std::string m_end;
 	};
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	int getUnquoted(sz arg, wchar_t* buffer)
+	int getUnquoted(sz arg, char* buffer)
 	{
-		const wchar_t* val = arg;
+		const char* val = arg;
 
 		bool quotes = (val[0] == L'"');
 		if(quotes)
@@ -424,22 +420,22 @@ namespace ctrc
 		}
 
 #ifdef CCTX_PLATFORM_WINDOWS
-		wcscpy_s(buffer, CCTX_MAX_PATH, val);
+		strcpy_s(buffer, CCTX_MAX_PATH, val);
 #else // CCTX_PLATFORM_XXX
-		wcscpy(buffer, val);
+		strcpy(buffer, val);
 #endif // CCTX_PLATFORM_XXX
 
 		if(quotes)
 		{
-			size_t argLength = wcslen(val);
+			size_t argLength = strlen(val);
 			if(argLength < 2)
 			{
-				CTRC_LOG_ERROR(L"invalid argument length");
+				CTRC_LOG_ERROR("invalid argument length");
 				return -1;
 			}
 			else if(val[argLength - 1] != L'"')
 			{
-				CTRC_LOG_ERROR(L"quote detection error for argument " << arg);
+				CTRC_LOG_ERROR("quote detection error for argument " << arg);
 				return -1;
 			}
 			else
@@ -455,20 +451,20 @@ namespace ctrc
 //----------------------------------------------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------------------------------------------
-int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
+int main(int argc, char* argv[] /*, char *envp[]*/)
 {
 	size_t colorArgValLengths[ctrc::COLOR_MAX];
 	assert(CTRC_ARRAY_LENGTH(ctrc::colorName) == CTRC_ARRAY_LENGTH(colorArgValLengths));
 	for(size_t i = 0; i < ctrc::COLOR_MAX; ++i)
 	{
-		colorArgValLengths[i] = wcslen(ctrc::getColorName(i));
+		colorArgValLengths[i] = strlen(ctrc::getColorName(i));
 	}
 
 	// Test for pause argument
 	for(int i = 1; i < argc; ++i)
 	{
-		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (wcscasecmp(arg, CTRC_ARG_PAUSE) == 0))
+		const char* arg = argv[i];
+		if((arg != NULL) && (strcasecmp(arg, CTRC_ARG_PAUSE) == 0))
 		{
 			static int j = 0;
 			while(true)
@@ -482,11 +478,11 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	// Test for verbose argument
 	for(int i = 1; i < argc; ++i)
 	{
-		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (wcscasecmp(arg, CTRC_ARG_VERBOSE) == 0))
+		const char* arg = argv[i];
+		if((arg != NULL) && (strcasecmp(arg, CTRC_ARG_VERBOSE) == 0))
 		{
 			verbose = true;
-			CTRC_LOG_INFO(L"verbose mode detected");
+			CTRC_LOG_INFO("verbose mode detected");
 			break;
 		}
 	}
@@ -494,18 +490,18 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	// Test for separator
 	for(int i = 1; i < argc; ++i)
 	{
-        const wchar_t* arg = argv[i];
-		if((arg != NULL) && (wcsncasecmp(arg, CTRC_ARG_SEPARATOR, CTRC_ARG_SEPARATOR_LENGTH) == 0))
+        const char* arg = argv[i];
+		if((arg != NULL) && (strncasecmp(arg, CTRC_ARG_SEPARATOR, CTRC_ARG_SEPARATOR_LENGTH) == 0))
 		{
-			wchar_t newSeparator = arg[CTRC_ARG_SEPARATOR_LENGTH];
+			char newSeparator = arg[CTRC_ARG_SEPARATOR_LENGTH];
 			if(newSeparator == 0)
 			{
-				CTRC_LOG_ERROR(L"invalid separator : " << arg);
+				CTRC_LOG_ERROR("invalid separator : " << arg);
 				return -1;
 			}
 			else
 			{
-				CTRC_LOG_INFO(L"separtor : " << newSeparator);
+				CTRC_LOG_INFO("separtor : " << newSeparator);
 				ctrc::tagSeparator = newSeparator;
 				break;
 
@@ -517,13 +513,13 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	size_t defaultColorKey = ctrc::invalidColorKey;
 	for(int i = 1; i < argc; ++i)
 	{
-		const wchar_t* arg = argv[i];
-		if((arg != NULL) && (wcsncasecmp(arg, CTRC_ARG_DEFAULT, CTRC_ARG_DEFAULT_LENGTH) == 0))
+		const char* arg = argv[i];
+		if((arg != NULL) && (strncasecmp(arg, CTRC_ARG_DEFAULT, CTRC_ARG_DEFAULT_LENGTH) == 0))
 		{
 			ctrc::sz argVal = arg + CTRC_ARG_SEPARATOR_LENGTH;
 			for(size_t j = 0; j < ctrc::COLOR_MAX; ++j)
 			{
-				if(wcscasecmp(argVal, ctrc::colorName[j]) == 0)
+				if(strcasecmp(argVal, ctrc::colorName[j]) == 0)
 				{
 					defaultColorKey = j;
 					break;
@@ -536,14 +532,14 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	std::vector<ctrc::tag> tags;
 	for(int i = 1; i < argc; ++i)
 	{
-		const wchar_t* arg = argv[i];
+		const char* arg = argv[i];
 		if(arg == NULL)
 		{
 			continue;
 		}
-		else if(wcsncasecmp(arg, CTRC_ARG_TAG, CTRC_ARG_TAG_LENGTH) == 0)
+		else if(strncasecmp(arg, CTRC_ARG_TAG, CTRC_ARG_TAG_LENGTH) == 0)
 		{
-			wchar_t argVal [MAX_PATH] = { 0 };
+			char argVal [CCTX_MAX_PATH] = { 0 };
 			int unquote = ctrc::getUnquoted(arg + CTRC_ARG_TAG_LENGTH, argVal);
 			if(unquote != 0)
 			{
@@ -553,13 +549,13 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			{
 				ctrc::sz argValColorName = ctrc::getColorName(j);
 				size_t colorArgValLength = colorArgValLengths[j];
-				if((wcsncasecmp(argVal, argValColorName, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
+				if((strncasecmp(argVal, argValColorName, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
 				{
 					ctrc::sz start = argVal + colorArgValLength + 1;
 					if(start[0] != 0)
 					{
 						tags.push_back(ctrc::tag(ctrc::colorKey(j), start));
-						CTRC_LOG_INFO(L"tag : " << argValColorName << L" : " << start);
+						CTRC_LOG_INFO("tag : " << argValColorName << " : " << start);
 					}
 				}
 			}
@@ -572,7 +568,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	if(stdOut == INVALID_HANDLE_VALUE)
 	{
-		CTRC_LOG_ERROR(L"could not get output handle");
+		CTRC_LOG_ERROR("could not get output handle");
 		return  -1;
 	}
 	CONSOLE_SCREEN_BUFFER_INFO info;
@@ -580,7 +576,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	BOOL getInfo = ::GetConsoleScreenBufferInfo(stdOut, &info);
 	if(getInfo == FALSE)
 	{
-		CTRC_LOG_ERROR(L"could not get consule screen buffer info");
+		CTRC_LOG_ERROR("could not get consule screen buffer info");
 		return  -1;
 	}
 	WORD initConsoleAttribs = info.wAttributes;
@@ -589,22 +585,22 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 
 #endif // CCTX_PLATFORM_XXX
 
-	CTRC_LOG_INFO(L"start");
+	CTRC_LOG_INFO("start");
 
-	std::wstring line;
+	std::string line;
 	while(std::wcin)
 	{
-		std::getline(std::wcin, line);
-		CTRC_LOG_INFO(L"new line");
+		std::getline(std::cin, line);
+		CTRC_LOG_INFO("new line");
 
 		size_t lineColorKey = defaultColorKey;
 		for(size_t i = 0; i < tags.size(); ++i)
 		{
 			const ctrc::tag& s = tags[i];
-			std::wstring::size_type startFound = line.find(s.m_start.c_str());
-			if(startFound != std::wstring::npos)
+			std::string::size_type startFound = line.find(s.m_start.c_str());
+			if(startFound != std::string::npos)
 			{
-				CTRC_LOG_INFO(L"tag found : " << ctrc::colorName[s.m_colorKey]);
+				CTRC_LOG_INFO("tag found : " << ctrc::colorName[s.m_colorKey]);
 				lineColorKey = s.m_colorKey;
 				break;
 			}
@@ -616,33 +612,33 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		if(lineConsoleAttrib != initConsoleAttribs)
 		{
 			::SetConsoleTextAttribute(stdOut, lineConsoleAttrib);
-			std::wcout << line.c_str() << std::endl;
+			std::cout << line.c_str() << std::endl;
 			::SetConsoleTextAttribute(stdOut, initConsoleAttribs);
 		}
 		else
 		{
-			std::wcout << line.c_str() << std::endl;
+			std::cout << line.c_str() << std::endl;
 		}
 
 #elif defined CCTX_PLATFORM_MAC
 
 		if(lineColorKey != defaultColorKey)
 		{
-			sz ansiLineColorEscSeq = getAnsiEscapeSequence(lineColorKey);
-			std::wcout << ansiLineColorEscSeq;
-			std::wcout << line.c_str();
-			std::wcout << ansiResetColorEsSeq << std::endl;
+            ctrc::sz ansiLineColorEscSeq = ctrc::getAnsiEscapeSequence(lineColorKey);
+			std::cout << ansiLineColorEscSeq;
+			std::cout << line.c_str();
+            std::cout << ctrc::ansiResetColorEsSeq << std::endl;
 		}
 		else
 		{
-			std::wcout << line.c_str() << std::endl;
+			std::cout << line.c_str() << std::endl;
 		}
 
 #endif // CCTX_PLATFORM_XXX
 
 	}
 
-	CTRC_LOG_INFO(L"finished");
+	CTRC_LOG_INFO("finished");
 
 	return 0;
 }
