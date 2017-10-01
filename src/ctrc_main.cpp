@@ -150,7 +150,7 @@
 #elif defined CCTX_PLATFORM_WINDOWS
 #   include <windows.h>
 #   define wcscasecmp _wcsicmp
-#   define wcsncasecmp _wcsicmp
+#   define wcsncasecmp _wcsnicmp
 #endif // CCTX_PLATFORM_XXX
 
 #include <iostream>
@@ -213,6 +213,8 @@ namespace ctrc
 		COLOR_MAX
 	};
 
+	static const size_t invalidColorKey = size_t(ctrc::COLOR_MAX);
+
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
@@ -252,7 +254,7 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	static const wchar_t colorVal [] =
+	static const wchar_t winColorVal [] =
 	{
 		// black
 		30,
@@ -291,18 +293,18 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	wchar_t getColorVal(size_t key)
+	wchar_t getWinColorVal(size_t key)
 	{
 		assert(key < COLOR_MAX);
-		assert(CTRC_ARRAY_LENGTH(colorVal) == COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(winColorVal) == COLOR_MAX);
 
-		return colorVal[key];
+		return winColorVal[key];
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	static const WORD colorConsoleAttrib [] =
+	static const WORD winColorConsoleAttrib [] =
 	{
 		// black
 		0,
@@ -341,39 +343,72 @@ namespace ctrc
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
-	WORD getColorConsoleAttrib(size_t key)
+	WORD getWinColorConsoleAttrib(size_t key)
 	{
 		assert(key < COLOR_MAX);
-		assert(CTRC_ARRAY_LENGTH(colorConsoleAttrib) == COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(winColorConsoleAttrib) == COLOR_MAX);
 
-		return colorConsoleAttrib[key];
+		return winColorConsoleAttrib[key];
 	}
+
+#elif defined CCTX_PLATFORM_MACOS
+
+	static const sz ansiResetColorEsSeq = "\033[0m";
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
+	static const sz ansiColorEscapeSeq[] =
+	{
+		"\033[30m",
+		"\033[31m",
+		"\033[32m",
+		"\033[33m",
+		"\033[34m",
+		"\033[35m",
+		"\033[36m",
+		"\033[37m",
+		"\033[30;1m",
+		"\033[31;1m",
+		"\033[32;1m",
+		"\033[33;1m",
+		"\033[34;1m",
+		"\033[35;1m",
+		"\033[36;1m",
+		"\033[37;1m",
+	};
+
+	//----------------------------------------------------------------------------------------------------------------------
+	//
+	//----------------------------------------------------------------------------------------------------------------------
+	sz getAnsiEscapeSequence(size_t key)
+	{
+		assert(key < COLOR_MAX);
+		assert(CTRC_ARRAY_LENGTH(ansiColorEscapeSeq) == COLOR_MAX);
+
+		return ansiColorEscapeSeq[key];
+	}
+
+#endif // CCTX_PLATFORM_XXX
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
 	//----------------------------------------------------------------------------------------------------------------------
 	struct tag
 	{
-		tag(colorKey key, sz start): m_colorKey(key), m_start(start)
+		tag(colorKey key, sz start) : m_colorKey(key), m_start(start)
 		{
 			assert(key < COLOR_MAX);
 			m_seq[0] = esc;
-			m_seq[1] = getColorVal(key);
+			m_seq[1] = getWinColorVal(key);
 			m_seq[2] = 0;
-			m_attribs = getColorConsoleAttrib(key);
 		}
-// 		tag(colorKey key, sz start, sz end): m_colorKey(key), m_start(start), m_end(end) {}
 
 		colorKey m_colorKey;
 		std::wstring m_start;
 		std::wstring m_end;
-		wchar_t m_seq [3];
-		WORD m_attribs;
+		wchar_t m_seq[3];
 	};
-    
-#elif defined CCTX_PLATFORM_MACOS
-    
-#endif // CCTX_PLATFORM_XXX
 
 	//----------------------------------------------------------------------------------------------------------------------
 	//
@@ -479,8 +514,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	}
 
 	// Test for default color
-	static const WORD invalidConsoleAttrib = WORD(-1);
-	WORD defaultConsoleAttrib = invalidConsoleAttrib;
+	size_t defaultColorKey = ctrc::invalidColorKey;
 	for(int i = 1; i < argc; ++i)
 	{
 		const wchar_t* arg = argv[i];
@@ -491,7 +525,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			{
 				if(wcscasecmp(argVal, ctrc::colorName[j]) == 0)
 				{
-					defaultConsoleAttrib = ctrc::getColorConsoleAttrib(j);
+					defaultColorKey = j;
 					break;
 				}
 			}
@@ -507,7 +541,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		{
 			continue;
 		}
-		else if(_wcsnicmp(arg, CTRC_ARG_TAG, CTRC_ARG_TAG_LENGTH) == 0)
+		else if(wcsncasecmp(arg, CTRC_ARG_TAG, CTRC_ARG_TAG_LENGTH) == 0)
 		{
 			wchar_t argVal [MAX_PATH] = { 0 };
 			int unquote = ctrc::getUnquoted(arg + CTRC_ARG_TAG_LENGTH, argVal);
@@ -519,7 +553,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			{
 				ctrc::sz argValColorName = ctrc::getColorName(j);
 				size_t colorArgValLength = colorArgValLengths[j];
-				if((_wcsnicmp(argVal, argValColorName, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
+				if((wcsncasecmp(argVal, argValColorName, colorArgValLength) == 0) && (argVal[colorArgValLength] == ctrc::tagSeparator))
 				{
 					ctrc::sz start = argVal + colorArgValLength + 1;
 					if(start[0] != 0)
@@ -532,6 +566,8 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 		}
 	}
 
+#if defined CCTX_PLATFORM_WINDOWS
+
 	// Get initial console text attributes
 	HANDLE stdOut = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	if(stdOut == INVALID_HANDLE_VALUE)
@@ -541,7 +577,7 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	}
 	CONSOLE_SCREEN_BUFFER_INFO info;
 	memset(&info, 0, sizeof(info));
-	BOOL getInfo = GetConsoleScreenBufferInfo(stdOut, &info);
+	BOOL getInfo = ::GetConsoleScreenBufferInfo(stdOut, &info);
 	if(getInfo == FALSE)
 	{
 		CTRC_LOG_ERROR(L"could not get consule screen buffer info");
@@ -549,15 +585,19 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 	}
 	WORD initConsoleAttribs = info.wAttributes;
 
+#elif defined CCTX_PLATFORM_MAC
+
+#endif // CCTX_PLATFORM_XXX
+
 	CTRC_LOG_INFO(L"start");
 
 	std::wstring line;
 	while(std::wcin)
 	{
-		getline(std::wcin, line);
+		std::getline(std::wcin, line);
 		CTRC_LOG_INFO(L"new line");
 
-		WORD consoleAttrib = defaultConsoleAttrib;
+		size_t lineColorKey = defaultColorKey;
 		for(size_t i = 0; i < tags.size(); ++i)
 		{
 			const ctrc::tag& s = tags[i];
@@ -565,20 +605,41 @@ int wmain(int argc, wchar_t *argv[] /*, wchar_t *envp[]*/)
 			if(startFound != std::wstring::npos)
 			{
 				CTRC_LOG_INFO(L"tag found : " << ctrc::colorName[s.m_colorKey]);
-				consoleAttrib = s.m_attribs;
+				lineColorKey = s.m_colorKey;
 				break;
 			}
 		}
-		if(consoleAttrib != invalidConsoleAttrib)
+
+#if defined CCTX_PLATFORM_WINDOWS
+
+		WORD lineConsoleAttrib = ctrc::getWinColorConsoleAttrib(lineColorKey);
+		if(lineConsoleAttrib != initConsoleAttribs)
 		{
-			SetConsoleTextAttribute(stdOut, consoleAttrib);
+			::SetConsoleTextAttribute(stdOut, lineConsoleAttrib);
 			std::wcout << line.c_str() << std::endl;
-			SetConsoleTextAttribute(stdOut, initConsoleAttribs);
+			::SetConsoleTextAttribute(stdOut, initConsoleAttribs);
 		}
 		else
 		{
 			std::wcout << line.c_str() << std::endl;
 		}
+
+#elif defined CCTX_PLATFORM_MAC
+
+		if(lineColorKey != defaultColorKey)
+		{
+			sz ansiLineColorEscSeq = getAnsiEscapeSequence(lineColorKey);
+			std::wcout << ansiLineColorEscSeq;
+			std::wcout << line.c_str();
+			std::wcout << ansiResetColorEsSeq << std::endl;
+		}
+		else
+		{
+			std::wcout << line.c_str() << std::endl;
+		}
+
+#endif // CCTX_PLATFORM_XXX
+
 	}
 
 	CTRC_LOG_INFO(L"finished");
