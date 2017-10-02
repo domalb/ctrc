@@ -9,10 +9,20 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>ctrc_test_gen.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>CE1888C81F7E1C4E00099B3F</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>CE3C71D11F820841005FFB7E</key>
 		<dict>
 			<key>primary</key>
 			<true/>

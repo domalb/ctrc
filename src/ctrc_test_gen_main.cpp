@@ -6,13 +6,13 @@
 //----------------------------------------------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------------------------------------------
-int wmain(int, wchar_t *[] /*, wchar_t *envp[]*/)
+int wmain(int, char *[])
 {
-	std::wcout << L"hello world!" << std::endl;
-	std::wcout << L"error: this is bad" << std::endl;
-	std::wcout << L"encountered an error: this is bad. hoping for no other error." << std::endl;
-	std::wcout << L"warning: reaching the end." << std::endl;
-	std::wcout << L"trace: finished!" << std::endl;
+	std::cout << "hello world!" << std::endl;
+	std::cout << "error: this is bad" << std::endl;
+	std::cout << "encountered an error: this is bad. hoping for no other error." << std::endl;
+	std::cout << "warning: reaching the end." << std::endl;
+	std::cout << "trace: finished!" << std::endl;
 
 	 return 0;
 }
