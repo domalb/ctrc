@@ -2,7 +2,7 @@
 Console text re-coloring
 
 ## Purpose
-Working in Windows console is made easier with some coloring. CTRC scans its standard input and sends it back to its standard aumented with coloring according to detected tags.
+Working in Windows console is made easier with some coloring. CTRC scans its standard input and sends it back to its standard augmented with coloring according to detected tags.
 
 Typically CTRC should be piped with another program or command for which we need coloring.
 
